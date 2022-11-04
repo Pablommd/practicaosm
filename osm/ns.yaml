@@ -1,0 +1,31 @@
+nsd:
+    nsd:
+    -   description: Residential Network Service (RENES) with two VNFs.
+        designer: UPM
+        df:
+        -   id: default-df
+            vnf-profile:
+            -   id: '1'
+                virtual-link-connectivity:
+                -   constituent-cpd-id:
+                    -   constituent-base-element-id: '1'
+                        constituent-cpd-id: mgmt-ext
+                    virtual-link-profile-id: mgmtnet
+                vnfd-id: ovs_knf
+            -   id: '2'
+                virtual-link-connectivity:
+                -   constituent-cpd-id:
+                    -   constituent-base-element-id: '2'
+                        constituent-cpd-id: mgmt-ext
+                    virtual-link-profile-id: mgmtnet
+                vnfd-id: quagga_knf
+        id: ovs
+        name: ovs
+        version: '1.0'
+        virtual-link-desc:
+        -   id: mgmtnet
+            mgmt-network: 'true'
+            vim-network-name: mgmt
+        vnfd-id:
+        - quagga_knf
+        - ovs_knf

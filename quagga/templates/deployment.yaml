@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vcpe.fullname" . }}
+  labels:
+    {{- include "vcpe.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "vcpe.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+    	k8s.v1.cni.cncf.io/networks: extnet
+      {{- end }}
+      labels:
+        {{- include "vcpe.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "vcpe.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: K8S_QUAGGA_INTERFACE
+              value: eth0
+            - name: K8S_QUAGGA_PORTALNET
+              value: 172.17.0.0/16
+            - name: K8S_QUAGGA_CONTAINERNET
+              value: 172.17.0.0/16
+            - name: K8S_QUAGGA_PORTALGW
+              value: 192.168.64.0/24
+            - name: K8S_QUAGGA_HOMENET
+              value: 192.168.64.0/24
+            - name: K8S_QUAGGA_ROUTERID
+              value: 192.168.64.2
+            - name: K8S_QUAGGA_PASSWORD
+              value: ospf1
+          command: [ "sh", "-ce", "tail -f /dev/null" , "./run.sh" ]
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - echo
+                - "alive"
+          readinessProbe:
+            exec:
+              command:
+                - echo
+                - "alive"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nice.fullname" . }}
+  annotations:
+    k8s.v1.cni.cncf.io/networks: accessnet
+  labels:
+    {{- include "nice.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nice.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "nice.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "nice.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext: 
+            runAsUser: 0 
+            privileged: true
+          env:
+            - name: K8S_QUAGGA_INTERFACE
+              value: eth0
+            - name: K8S_QUAGGA_PORTALNET
+              value: 10.1.0.0/16
+            - name: K8S_QUAGGA_CONTAINERNET
+              value: 10.1.0.0/16
+            - name: K8S_QUAGGA_PORTALGW
+              value: 192.168.64.0/24
+            - name: K8S_QUAGGA_HOMENET
+              value: 192.168.64.0/24
+            - name: K8S_QUAGGA_ROUTERID
+              value: 192.168.64.2
+            - name: K8S_QUAGGA_PASSWORD
+              value: ospf1
+          command: []
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - echo
+                - "alive"
+          readinessProbe:
+            exec:
+              command:
+                - echo
+                - "alive"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
