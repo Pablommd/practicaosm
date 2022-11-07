@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: cameronbrunner/k8s-quagga:latest
+  repository: kathara/quagga:latest
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
