@@ -40,7 +40,7 @@ entries:
     name: osm2
     type: application
     urls:
-    - https://pablommd.github.io/practicaosm/osm1-0.1.0.tgz
+    - https://pablommd.github.io/practicaosm/osm2-0.1.0.tgz
     version: 0.1.0
   ovs:
   - apiVersion: v2
